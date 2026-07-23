@@ -231,6 +231,8 @@ svg{flex:none}
 .icon-btn:hover{background:var(--gray-100);color:var(--gray-700)}
 .icon-btn svg{width:18px;height:18px;stroke:currentColor;stroke-width:1.8;fill:none}
 .icon-btn .badge-dot{position:absolute;top:7px;right:8px;width:7px;height:7px;border-radius:99px;background:var(--brand-500);border:2px solid #fff}
+.search-toggle{display:none}
+.search-toggle.on{background:var(--brand-050);color:var(--brand-600)}
 
 .content{padding:22px 24px 40px;flex:1}
 .view{display:none;animation:fade .22s var(--ease)}
@@ -581,6 +583,9 @@ td.cell-wrap{white-space:normal;min-width:190px;max-width:250px;color:var(--gray
 .tile .go svg{width:12px;height:12px;stroke:currentColor;stroke-width:2.4;fill:none}
 
 .dash-grid{display:grid;gap:14px;grid-template-columns:1.05fr 1fr}
+/* Sin esto los items de grid usan min-width:auto y el contenido con nowrap
+   (montos, fechas) los estira mas alla del viewport en pantallas chicas. */
+.dash-grid>*{min-width:0}
 @media (max-width:1000px){.dash-grid{grid-template-columns:1fr}}
 
 .pipe-list{padding:6px 18px 16px}
@@ -594,8 +599,8 @@ td.cell-wrap{white-space:normal;min-width:190px;max-width:250px;color:var(--gray
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pipe-bar{width:88px;height:5px;border-radius:99px;background:var(--gray-100);overflow:hidden;flex:none}
 .pipe-bar i{display:block;height:100%;border-radius:99px}
-.pipe-n{font-size:12px;font-weight:650;color:var(--gray-900);width:18px;text-align:right;font-variant-numeric:tabular-nums}
-.pipe-amount{font-size:12px;color:var(--gray-500);width:104px;text-align:right;font-variant-numeric:tabular-nums}
+.pipe-n{font-size:12px;font-weight:650;color:var(--gray-900);width:18px;text-align:right;font-variant-numeric:tabular-nums;flex:none}
+.pipe-amount{font-size:12px;color:var(--gray-500);width:104px;text-align:right;font-variant-numeric:tabular-nums;flex:none}
 
 .mini-list{padding:4px 0 8px}
 .mini-row{
@@ -822,10 +827,120 @@ td.cell-wrap{white-space:normal;min-width:190px;max-width:250px;color:var(--gray
   .topbar{padding:0 16px}
   .form-grid{grid-template-columns:1fr}
 }
+/* ---------- MÓVIL ---------- */
 @media (max-width:620px){
-  .search{display:none}
-  .kpi-value{font-size:24px}
-  .donut-wrap{gap:16px}
+  /* Densidad general: menos aire lateral, la pantalla es el recurso escaso */
+  .content{padding:14px 12px 28px}
+  .topbar{padding:0 12px;gap:8px}
+  .crumbs{display:none}
+  .page-title{font-size:16px}
+
+  /* La búsqueda pasa a un icono que despliega una barra completa */
+  .search{
+    display:none;position:absolute;left:12px;right:12px;top:calc(100% + 8px);
+    width:auto;z-index:6;
+  }
+  .search.open{display:block}
+  .search input{height:40px;box-shadow:var(--shadow-md);background:#fff}
+  .search-toggle{display:flex}
+
+  /* Encabezados de vista: acciones a ancho completo, sin apretujarse */
+  .view-head{gap:12px}
+  .view-head .vh-title{font-size:17px}
+  .view-head .vh-actions{margin-left:0;width:100%}
+  .view-head .vh-actions .btn{flex:1;justify-content:center}
+  .view-head .vh-actions .segmented{width:100%}
+  .view-head .vh-actions .segmented button{flex:1}
+  .view-head .vh-actions .field{width:100%;min-width:0}
+
+  /* Filtros: una columna y acciones a ancho completo */
+  .filters{grid-template-columns:1fr;gap:11px;padding:14px}
+  .filters-actions{width:100%}
+  .filters-actions .btn{flex:1;justify-content:center}
+
+  /* Tablas: se congela la primera columna (la que identifica la fila)
+     para no perder el contexto al desplazar en horizontal */
+  .table-scroll{-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+  .table-scroll th:first-child{position:sticky;left:0;z-index:3;background:var(--gray-050)}
+  .table-scroll td:first-child{position:sticky;left:0;z-index:1;background:#fff}
+  .table-scroll th:first-child::after,
+  .table-scroll td:first-child::after{
+    content:'';position:absolute;top:0;right:0;bottom:0;width:1px;
+    background:var(--gray-200);
+  }
+  tbody tr:hover td:first-child{background:var(--brand-050)}
+  thead th{padding:9px 11px;font-size:11px}
+  tbody td{padding:11px}
+  td.cell-wrap{min-width:150px;max-width:190px}
+  .table-toolbar{padding:11px 13px;gap:8px}
+  .pagination{padding:11px 13px;gap:6px}
+  .pagination .pages{margin-left:0;width:100%;justify-content:center}
+
+  /* Kanban: una columna casi a pantalla completa, con anclaje al deslizar */
+  .kanban{scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;gap:11px}
+  .kb-col{width:84vw;scroll-snap-align:center;max-height:none}
+  .kb-body{max-height:60vh}
+
+  /* Dashboard: dos columnas de tarjetas en vez de una tira vertical larga */
+  .greeting h1{font-size:20px}
+  .tile-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .tile{padding:13px;gap:7px}
+  .tile h4{font-size:12.5px}
+  .tile p{font-size:11.5px}
+  .tile .go{display:none}
+  .mini-kpi-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .mini-kpi .lb{min-height:0}
+  .pipe-bar{display:none}
+  .pipe-amount{width:auto}
+  .mini-row{padding:11px 13px}
+
+  /* Desempeño */
+  .kpi-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .kpi{padding:13px}
+  .kpi-value{font-size:21px}
+  .kpi-label{font-size:11.5px}
+  .chart-grid{grid-template-columns:1fr}
+  .donut-wrap{flex-direction:column;align-items:center;gap:16px;padding:18px 14px}
+  .donut{width:140px;height:140px}
+  .legend{width:100%;min-width:0}
+
+  /* Modal: hoja a pantalla completa, es lo que se espera en móvil */
+  .overlay{padding:0;align-items:flex-end}
+  .modal{
+    width:100%;max-height:94vh;height:94vh;
+    border-radius:16px 16px 0 0;
+    animation:sheetIn .28s var(--ease);
+  }
+  @keyframes sheetIn{from{transform:translateY(26px);opacity:.6}to{transform:none;opacity:1}}
+  .modal-head{padding:15px 16px}
+  .modal-body{padding:16px}
+  .modal-foot{padding:12px 16px;flex-wrap:wrap}
+  .modal-foot .btn{flex:1;justify-content:center}
+  .step-count{width:100%;order:-1;text-align:center}
+  /* Solo el paso activo muestra su nombre: los tres rótulos no caben */
+  .steps{padding:12px 16px}
+  .step-txt{display:none}
+  .step.active .step-txt{display:block}
+  .recipients-bar{flex-direction:column}
+
+  .empty{padding:44px 18px}
+
+  /* En móvil el aviso baja al pie: arriba tapaba el título de la vista */
+  .toast{
+    top:auto;bottom:12px;left:12px;right:12px;
+    transform:none;max-width:none;
+    font-size:12px;padding:9px 6px 9px 12px;
+    animation:toastInPie .38s cubic-bezier(.2,.9,.32,1.2) both;
+  }
+  @keyframes toastInPie{
+    from{opacity:0;transform:translateY(26px) scale(.97)}
+    to{opacity:1;transform:none}
+  }
+  .toast.out{animation:toastOutPie .24s var(--ease) forwards}
+  @keyframes toastOutPie{
+    from{opacity:1;transform:none}
+    to{opacity:0;transform:translateY(20px) scale(.97)}
+  }
 }
 </style>
 </head>
@@ -939,10 +1054,13 @@ td.cell-wrap{white-space:normal;min-width:190px;max-width:250px;color:var(--gray
         <div class="page-title" id="pageTitle">Dashboard</div>
       </div>
       <div class="topbar-actions">
-        <div class="search">
+        <div class="search" id="searchBox">
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.2-4.2"/></svg>
           <input type="text" placeholder="Buscar…" />
         </div>
+        <button class="icon-btn search-toggle" id="searchToggle" aria-label="Buscar" aria-expanded="false">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.2-4.2"/></svg>
+        </button>
         <button class="icon-btn" aria-label="Notificaciones">
           <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
           <span class="badge-dot"></span>
@@ -1783,6 +1901,23 @@ function updateRecCount(){
   const n = document.querySelectorAll('#tbodyDestinatarios .check.on').length;
   document.getElementById('recCount').textContent = n;
 }
+
+/* En móvil la búsqueda vive detrás de un icono y se despliega a ancho completo */
+const searchBox = document.getElementById('searchBox');
+const searchToggle = document.getElementById('searchToggle');
+searchToggle.addEventListener('click',()=>{
+  const abierto = searchBox.classList.toggle('open');
+  searchToggle.classList.toggle('on',abierto);
+  searchToggle.setAttribute('aria-expanded',String(abierto));
+  if(abierto) searchBox.querySelector('input').focus();
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape' && searchBox.classList.contains('open')){
+    searchBox.classList.remove('open');
+    searchToggle.classList.remove('on');
+    searchToggle.setAttribute('aria-expanded','false');
+  }
+});
 
 document.getElementById('hamburger').addEventListener('click',()=>{
   sidebar.classList.toggle('open'); scrim.classList.toggle('on');
