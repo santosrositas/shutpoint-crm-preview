@@ -1,0 +1,1842 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Shutpoint CRM · Preview de rediseño</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   TOKENS
+   ============================================================ */
+:root{
+  --brand-500:#2B85D1;      /* azul institucional Axsis */
+  --brand-600:#1F6CB0;
+  --brand-700:#175591;
+  --brand-050:#EAF3FC;
+  --brand-100:#D6E7F8;
+  --navy-900:#1B2A4E;       /* azul marino del logotipo */
+  --navy-800:#243459;
+
+  --gray-000:#FFFFFF;
+  --gray-025:#FBFCFD;
+  --gray-050:#F5F7FA;
+  --gray-100:#EDF0F5;
+  --gray-200:#E1E6ED;
+  --gray-300:#CBD3DE;
+  --gray-400:#9AA6B8;
+  --gray-500:#6B7789;
+  --gray-600:#525C6E;
+  --gray-700:#3A4354;
+  --gray-900:#1A2030;
+
+  --green-050:#E9F7EF; --green-600:#1E8E4E; --green-500:#27A35C;
+  --amber-050:#FEF4E6; --amber-700:#A96A08; --amber-500:#E1930F;
+  --red-050:#FDECEC;   --red-700:#B4302B;
+  --violet-050:#F0EDFB;--violet-700:#5A45B8;
+  --teal-050:#E6F6F5;  --teal-700:#12766E;
+
+  --radius-sm:6px; --radius:10px; --radius-lg:14px; --radius-xl:18px;
+  --shadow-xs:0 1px 2px rgba(21,34,58,.06);
+  --shadow-sm:0 1px 3px rgba(21,34,58,.08), 0 1px 2px rgba(21,34,58,.04);
+  --shadow-md:0 4px 14px rgba(21,34,58,.08), 0 1px 3px rgba(21,34,58,.05);
+  --shadow-lg:0 18px 46px rgba(21,34,58,.18), 0 4px 12px rgba(21,34,58,.08);
+
+  --sidebar-w:248px;
+  --topbar-h:64px;
+  --ease:cubic-bezier(.4,0,.2,1);
+
+  /* El preview reproduce un producto de interfaz clara: se mantiene en tema
+     claro aunque quien lo vea tenga el sistema en oscuro. color-scheme evita
+     que los <select> y <input type="date"> nativos se pinten en oscuro. */
+  color-scheme:light;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+html{background:var(--gray-050)}
+body{
+  margin:0;
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:14px;
+  line-height:1.5;
+  color:var(--gray-900);
+  background:var(--gray-050);
+  -webkit-font-smoothing:antialiased;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+a{color:var(--brand-600);text-decoration:none}
+svg{flex:none}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:var(--gray-300);border-radius:99px;border:3px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:var(--gray-400);background-clip:padding-box;border:3px solid transparent}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ============================================================
+   BANNER PREVIEW
+   ============================================================ */
+.toast{
+  position:fixed;top:14px;left:50%;z-index:90;
+  display:flex;align-items:center;gap:9px;
+  max-width:min(470px,calc(100vw - 28px));
+  padding:8px 8px 8px 13px;
+  background:var(--navy-900);color:#C9D8EE;
+  border-radius:11px;
+  box-shadow:0 14px 34px rgba(9,17,34,.32), 0 2px 8px rgba(9,17,34,.22);
+  font-size:12.5px;line-height:1.35;
+  animation:toastIn .44s cubic-bezier(.2,.9,.32,1.25) both;
+}
+.toast strong{color:#fff;font-weight:600}
+.toast .toast-dot{width:6px;height:6px;border-radius:99px;background:var(--brand-500);flex:none}
+.toast .toast-close{
+  flex:none;width:22px;height:22px;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  color:#7E95BA;transition:.15s var(--ease);
+}
+.toast .toast-close:hover{color:#fff;background:rgba(255,255,255,.12)}
+.toast .toast-close svg{width:13px;height:13px;stroke:currentColor;stroke-width:2.3;fill:none}
+@keyframes toastIn{
+  from{opacity:0;transform:translate(-50%,-26px) scale(.96)}
+  to{opacity:1;transform:translate(-50%,0) scale(1)}
+}
+.toast.out{animation:toastOut .26s var(--ease) forwards}
+@keyframes toastOut{
+  from{opacity:1;transform:translate(-50%,0) scale(1)}
+  to{opacity:0;transform:translate(-50%,-22px) scale(.96)}
+}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.app{display:flex;min-height:100vh}
+
+/* ---------- SIDEBAR ---------- */
+.sidebar{
+  width:var(--sidebar-w);flex:none;
+  background:var(--navy-900);
+  display:flex;flex-direction:column;
+  position:sticky;top:0;align-self:flex-start;
+  height:100vh;
+  z-index:40;
+}
+
+.logo-slot{
+  margin:18px 16px 16px;
+  display:flex;align-items:center;
+  transition:.2s var(--ease);
+}
+.logo-slot img{display:block;width:auto;max-width:100%}
+
+/* Botón blanco con el logotipo de Shutpoint a color */
+.brand-btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  background:#fff;border-radius:12px;
+  padding:10px 15px;
+  box-shadow:0 2px 10px rgba(9,17,34,.28), 0 0 0 1px rgba(255,255,255,.06);
+  transition:.18s var(--ease);
+}
+.brand-btn:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(9,17,34,.34), 0 0 0 1px rgba(255,255,255,.1)}
+.brand-btn:active{transform:translateY(0)}
+.brand-btn .brand-full{height:22px}
+.brand-btn .brand-icon{display:none;height:24px}
+
+.nav{flex:1;overflow-y:auto;padding:6px 12px 12px}
+.nav-label{
+  padding:12px 10px 6px;
+  font-size:10.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+  color:rgba(255,255,255,.36);
+}
+.nav-item{
+  display:flex;align-items:center;gap:11px;width:100%;
+  padding:9px 10px;margin-bottom:2px;
+  border-radius:8px;
+  color:rgba(255,255,255,.72);
+  font-size:13.5px;font-weight:500;
+  text-align:left;
+  transition:background .16s var(--ease),color .16s var(--ease);
+  position:relative;
+}
+.nav-item svg{width:17px;height:17px;stroke:currentColor;stroke-width:1.8;fill:none;opacity:.85}
+.nav-item:hover{background:rgba(255,255,255,.07);color:#fff}
+.nav-item.active{background:var(--brand-500);color:#fff;box-shadow:0 2px 10px rgba(43,133,209,.35)}
+.nav-item.active svg{opacity:1}
+.nav-item .chip{
+  margin-left:auto;font-size:11px;font-weight:600;
+  background:rgba(255,255,255,.16);color:#fff;
+  padding:1px 7px;border-radius:99px;
+}
+.nav-item.active .chip{background:rgba(255,255,255,.24)}
+
+.sidebar-foot{padding:12px 16px 16px;border-top:1px solid rgba(255,255,255,.09)}
+.logo-slot--foot{margin:0 0 14px}
+.logo-slot--foot .brand-full{height:13px;opacity:.8}
+.logo-slot--foot .brand-icon{display:none;height:18px;opacity:.8}
+.user-mini{display:flex;align-items:center;gap:10px;color:rgba(255,255,255,.8)}
+.avatar{
+  width:30px;height:30px;border-radius:99px;flex:none;
+  background:linear-gradient(140deg,var(--brand-500),var(--brand-700));
+  color:#fff;font-size:11.5px;font-weight:600;
+  display:flex;align-items:center;justify-content:center;
+}
+.user-mini .meta{min-width:0}
+.user-mini .name{font-size:12.5px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-mini .role{font-size:11px;color:rgba(255,255,255,.5)}
+
+/* ---------- MAIN ---------- */
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+
+.topbar{
+  height:var(--topbar-h);flex:none;
+  background:rgba(255,255,255,.86);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--gray-200);
+  display:flex;align-items:center;gap:14px;
+  padding:0 24px;
+  position:sticky;top:0;z-index:30;
+}
+.hamburger{display:none;padding:7px;border-radius:8px;color:var(--gray-600)}
+.hamburger:hover{background:var(--gray-100)}
+.hamburger svg{width:19px;height:19px;stroke:currentColor;stroke-width:1.9;fill:none}
+
+.crumbs{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--gray-500);margin-bottom:1px}
+.crumbs span+span::before{content:'/';margin-right:7px;color:var(--gray-300)}
+.page-title{font-size:17px;font-weight:600;letter-spacing:-.012em;line-height:1.15}
+
+.topbar-actions{margin-left:auto;display:flex;align-items:center;gap:10px}
+
+.search{
+  position:relative;width:250px;
+}
+.search input{
+  width:100%;height:36px;
+  padding:0 12px 0 34px;
+  border:1px solid var(--gray-200);border-radius:9px;
+  background:var(--gray-025);
+  font-size:13px;
+  transition:.16s var(--ease);
+}
+.search input::placeholder{color:var(--gray-400)}
+.search input:focus{outline:none;border-color:var(--brand-500);background:#fff;box-shadow:0 0 0 3px var(--brand-050)}
+.search svg{position:absolute;left:11px;top:9.5px;width:16px;height:16px;stroke:var(--gray-400);stroke-width:1.9;fill:none}
+
+.icon-btn{
+  width:36px;height:36px;border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--gray-500);border:1px solid transparent;
+  transition:.16s var(--ease);position:relative;
+}
+.icon-btn:hover{background:var(--gray-100);color:var(--gray-700)}
+.icon-btn svg{width:18px;height:18px;stroke:currentColor;stroke-width:1.8;fill:none}
+.icon-btn .badge-dot{position:absolute;top:7px;right:8px;width:7px;height:7px;border-radius:99px;background:var(--brand-500);border:2px solid #fff}
+
+.content{padding:22px 24px 40px;flex:1}
+.view{display:none;animation:fade .22s var(--ease)}
+.view.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+
+/* ============================================================
+   BOTONES
+   ============================================================ */
+.btn{
+  display:inline-flex;align-items:center;gap:7px;
+  height:36px;padding:0 14px;
+  border-radius:9px;
+  font-size:13px;font-weight:550;
+  border:1px solid transparent;
+  transition:.16s var(--ease);white-space:nowrap;
+}
+.btn svg{width:15px;height:15px;stroke:currentColor;stroke-width:2;fill:none}
+.btn-primary{background:var(--brand-500);color:#fff;box-shadow:0 1px 2px rgba(31,108,176,.28)}
+.btn-primary:hover{background:var(--brand-600);box-shadow:0 3px 10px rgba(31,108,176,.28)}
+.btn-primary:active{background:var(--brand-700);transform:translateY(.5px)}
+.btn-secondary{background:#fff;color:var(--gray-700);border-color:var(--gray-200);box-shadow:var(--shadow-xs)}
+.btn-secondary:hover{background:var(--gray-050);border-color:var(--gray-300)}
+.btn-ghost{color:var(--gray-600)}
+.btn-ghost:hover{background:var(--gray-100)}
+.btn-sm{height:31px;padding:0 11px;font-size:12.5px;border-radius:8px}
+
+/* ============================================================
+   CARDS / SURFACES
+   ============================================================ */
+.card{
+  background:#fff;
+  border:1px solid var(--gray-200);
+  border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-sm);
+}
+.card-head{
+  padding:15px 18px;
+  border-bottom:1px solid var(--gray-100);
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+}
+.card-title{font-size:14px;font-weight:600;letter-spacing:-.008em}
+.card-sub{font-size:12.5px;color:var(--gray-500);margin-top:1px}
+
+/* ============================================================
+   FILTROS
+   ============================================================ */
+.filters{
+  display:grid;gap:12px;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  padding:16px 18px;
+  background:#fff;border:1px solid var(--gray-200);
+  border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);
+  margin-bottom:16px;
+}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.field label{font-size:11.5px;font-weight:600;color:var(--gray-600);letter-spacing:.01em}
+.select-wrap{position:relative}
+.select-wrap svg{
+  position:absolute;right:10px;top:11px;width:15px;height:15px;
+  stroke:var(--gray-400);stroke-width:2;fill:none;pointer-events:none;
+}
+select,.input{
+  width:100%;height:37px;
+  padding:0 32px 0 11px;
+  border:1px solid var(--gray-200);border-radius:9px;
+  background:var(--gray-025);
+  font-size:13px;color:var(--gray-800);
+  appearance:none;
+  transition:.16s var(--ease);
+}
+.input{padding-right:11px}
+select:hover,.input:hover{border-color:var(--gray-300)}
+select:focus,.input:focus{outline:none;border-color:var(--brand-500);background:#fff;box-shadow:0 0 0 3px var(--brand-050)}
+textarea.input{height:auto;padding:9px 11px;resize:vertical;min-height:84px;line-height:1.55}
+
+.filters-actions{
+  display:flex;align-items:flex-end;gap:8px;
+}
+
+/* ============================================================
+   TABLAS
+   ============================================================ */
+.table-toolbar{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:13px 18px;border-bottom:1px solid var(--gray-100);
+}
+.table-toolbar .spacer{margin-left:auto}
+.result-count{font-size:12.5px;color:var(--gray-500)}
+.result-count b{color:var(--gray-900);font-weight:600}
+
+.table-scroll{overflow-x:auto}
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+thead th{
+  position:sticky;top:0;z-index:2;
+  background:var(--gray-050);
+  padding:10px 14px;
+  text-align:left;white-space:nowrap;
+  font-size:11.5px;font-weight:600;letter-spacing:.035em;text-transform:uppercase;
+  color:var(--gray-500);
+  border-bottom:1px solid var(--gray-200);
+}
+thead th .th-in{display:inline-flex;align-items:center;gap:5px}
+thead th svg{width:12px;height:12px;stroke:var(--gray-400);stroke-width:2.2;fill:none;opacity:0;transition:.15s}
+thead th:hover svg{opacity:1}
+tbody td{
+  padding:12px 14px;
+  border-bottom:1px solid var(--gray-100);
+  color:var(--gray-700);
+  vertical-align:middle;
+  white-space:nowrap;
+}
+tbody tr{transition:background .13s var(--ease)}
+tbody tr:hover{background:var(--brand-050)}
+tbody tr:last-child td{border-bottom:0}
+td.cell-strong{color:var(--gray-900);font-weight:550}
+td.cell-muted{color:var(--gray-500)}
+td.cell-wrap{white-space:normal;min-width:190px;max-width:250px;color:var(--gray-600);line-height:1.45}
+
+.cell-name{display:flex;align-items:center;gap:10px}
+.name-badge{
+  width:28px;height:28px;border-radius:8px;flex:none;
+  background:var(--brand-050);color:var(--brand-700);
+  font-size:11px;font-weight:600;
+  display:flex;align-items:center;justify-content:center;
+}
+.person{display:flex;align-items:center;gap:8px}
+.person .av{
+  width:24px;height:24px;border-radius:99px;flex:none;
+  background:var(--gray-100);color:var(--gray-600);
+  font-size:10px;font-weight:600;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* ---------- BADGES ---------- */
+.badge{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 9px;border-radius:99px;
+  font-size:11.5px;font-weight:600;line-height:1.35;
+  white-space:nowrap;
+}
+.badge::before{content:'';width:5px;height:5px;border-radius:99px;background:currentColor;flex:none}
+.badge.plain::before{display:none}
+.b-blue{background:var(--brand-050);color:var(--brand-700)}
+.b-green{background:var(--green-050);color:var(--green-600)}
+.b-amber{background:var(--amber-050);color:var(--amber-700)}
+.b-red{background:var(--red-050);color:var(--red-700)}
+.b-violet{background:var(--violet-050);color:var(--violet-700)}
+.b-teal{background:var(--teal-050);color:var(--teal-700)}
+.b-gray{background:var(--gray-100);color:var(--gray-600)}
+
+/* ---------- SWITCH (columna Activo) ---------- */
+.switch{
+  width:34px;height:19px;border-radius:99px;
+  background:var(--gray-300);position:relative;
+  transition:.18s var(--ease);display:inline-block;vertical-align:middle;
+}
+.switch::after{
+  content:'';position:absolute;top:2px;left:2px;
+  width:15px;height:15px;border-radius:99px;background:#fff;
+  box-shadow:0 1px 2px rgba(0,0,0,.2);
+  transition:.18s var(--ease);
+}
+.switch.on{background:var(--green-500)}
+.switch.on::after{left:17px}
+
+/* ---------- PAGINACIÓN ---------- */
+.pagination{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:12px 18px;border-top:1px solid var(--gray-100);
+  font-size:12.5px;color:var(--gray-500);
+}
+.pagination .pages{margin-left:auto;display:flex;gap:4px}
+.page-btn{
+  min-width:30px;height:30px;padding:0 8px;border-radius:8px;
+  font-size:12.5px;font-weight:550;color:var(--gray-600);
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid transparent;transition:.15s var(--ease);
+}
+.page-btn:hover{background:var(--gray-100)}
+.page-btn.active{background:var(--brand-500);color:#fff;box-shadow:0 1px 4px rgba(31,108,176,.3)}
+.page-btn:disabled{opacity:.4;cursor:default}
+.page-btn:disabled:hover{background:none}
+
+/* ============================================================
+   KANBAN
+   ============================================================ */
+.kanban{
+  display:flex;gap:14px;
+  overflow-x:auto;padding-bottom:14px;
+  align-items:flex-start;
+}
+.kb-col{
+  width:284px;flex:none;
+  background:var(--gray-100);
+  border-radius:var(--radius-lg);
+  display:flex;flex-direction:column;max-height:calc(100vh - 240px);
+}
+.kb-head{
+  padding:12px 14px 10px;position:sticky;top:0;
+  background:var(--gray-100);border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+  z-index:2;
+}
+.kb-head-top{display:flex;align-items:center;gap:8px}
+.kb-dot{width:8px;height:8px;border-radius:99px;flex:none}
+.kb-title{font-size:12.5px;font-weight:650;color:var(--gray-700);letter-spacing:-.005em}
+.kb-count{
+  margin-left:auto;font-size:11px;font-weight:600;
+  background:#fff;color:var(--gray-500);
+  padding:1px 8px;border-radius:99px;box-shadow:var(--shadow-xs);
+}
+.kb-total{font-size:11.5px;color:var(--gray-500);margin-top:5px;font-variant-numeric:tabular-nums}
+.kb-body{padding:2px 10px 10px;overflow-y:auto;display:flex;flex-direction:column;gap:9px}
+
+.kb-card{
+  background:#fff;border:1px solid var(--gray-200);
+  border-radius:var(--radius);padding:12px;
+  box-shadow:var(--shadow-xs);
+  transition:.16s var(--ease);cursor:grab;
+}
+.kb-card:hover{box-shadow:var(--shadow-md);transform:translateY(-1px);border-color:var(--gray-300)}
+.kb-card:active{cursor:grabbing}
+.kb-card-top{display:flex;align-items:flex-start;gap:8px;margin-bottom:9px}
+.kb-name{font-size:13px;font-weight:600;color:var(--gray-900);line-height:1.35}
+.kb-menu{margin-left:auto;color:var(--gray-400);padding:1px;border-radius:5px;flex:none}
+.kb-menu:hover{background:var(--gray-100);color:var(--gray-600)}
+.kb-menu svg{width:15px;height:15px;stroke:currentColor;stroke-width:2.2;fill:none}
+.kb-meta{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--gray-500)}
+.kb-row{display:flex;align-items:center;gap:7px}
+.kb-row svg{width:13px;height:13px;stroke:var(--gray-400);stroke-width:1.9;fill:none}
+.kb-foot{
+  margin-top:10px;padding-top:9px;border-top:1px dashed var(--gray-200);
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+}
+.kb-amount{font-size:13px;font-weight:650;color:var(--gray-900);font-variant-numeric:tabular-nums}
+.kb-amount-lbl{font-size:10.5px;color:var(--gray-400);font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+
+/* ============================================================
+   DESEMPEÑO
+   ============================================================ */
+.kpi-grid{
+  display:grid;gap:14px;
+  grid-template-columns:repeat(auto-fit,minmax(212px,1fr));
+  margin-bottom:16px;
+}
+.kpi{
+  background:#fff;border:1px solid var(--gray-200);
+  border-radius:var(--radius-lg);padding:16px 17px;
+  box-shadow:var(--shadow-sm);
+  transition:.18s var(--ease);
+}
+.kpi:hover{box-shadow:var(--shadow-md);transform:translateY(-1px)}
+.kpi-top{display:flex;align-items:center;gap:9px;margin-bottom:11px}
+.kpi-ico{
+  width:30px;height:30px;border-radius:9px;flex:none;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--brand-050);color:var(--brand-600);
+}
+.kpi-ico svg{width:16px;height:16px;stroke:currentColor;stroke-width:1.9;fill:none}
+.kpi-ico.g{background:var(--green-050);color:var(--green-600)}
+.kpi-ico.a{background:var(--amber-050);color:var(--amber-700)}
+.kpi-ico.v{background:var(--violet-050);color:var(--violet-700)}
+.kpi-ico.t{background:var(--teal-050);color:var(--teal-700)}
+.kpi-label{font-size:12.5px;font-weight:550;color:var(--gray-600);line-height:1.3}
+.kpi-value{font-size:28px;font-weight:680;letter-spacing:-.028em;line-height:1;font-variant-numeric:tabular-nums}
+.kpi-value small{font-size:16px;font-weight:600;color:var(--gray-400);margin-left:2px}
+.kpi-foot{margin-top:9px;display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--gray-500)}
+.progress{height:5px;border-radius:99px;background:var(--gray-100);overflow:hidden;margin-top:11px}
+.progress i{display:block;height:100%;border-radius:99px;background:var(--brand-500);transition:width .5s var(--ease)}
+.progress i.g{background:var(--green-500)}
+.progress i.a{background:var(--amber-500)}
+
+.chart-grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+.donut-wrap{display:flex;align-items:center;gap:22px;padding:20px 18px;flex-wrap:wrap}
+.donut{position:relative;width:168px;height:168px;flex:none}
+.donut svg{transform:rotate(-90deg);width:100%;height:100%}
+.donut circle{fill:none;stroke-width:20;transition:stroke-width .18s var(--ease)}
+.donut circle:hover{stroke-width:23}
+.donut-center{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;pointer-events:none;
+}
+.donut-center b{font-size:23px;font-weight:680;letter-spacing:-.025em;font-variant-numeric:tabular-nums}
+.donut-center span{font-size:11px;color:var(--gray-500);font-weight:500}
+.legend{flex:1;min-width:170px;display:flex;flex-direction:column;gap:9px}
+.legend-item{display:flex;align-items:center;gap:9px;font-size:12.5px}
+.legend-item .sw{width:9px;height:9px;border-radius:3px;flex:none}
+.legend-item .lb{color:var(--gray-600);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.legend-item .vl{margin-left:auto;font-weight:600;color:var(--gray-900);font-variant-numeric:tabular-nums}
+.legend-item .pc{color:var(--gray-400);font-size:11.5px;width:38px;text-align:right;font-variant-numeric:tabular-nums}
+
+/* ============================================================
+   DASHBOARD
+   ============================================================ */
+.greeting{margin-bottom:20px}
+.greeting h1{margin:0;font-size:23px;font-weight:680;letter-spacing:-.026em}
+.greeting p{margin:4px 0 0;font-size:13.5px;color:var(--gray-500)}
+
+.section-head{
+  display:flex;align-items:center;gap:10px;
+  margin:22px 0 11px;
+}
+.section-head h2{margin:0;font-size:14px;font-weight:650;letter-spacing:-.008em}
+.more{
+  margin-left:auto;display:inline-flex;align-items:center;gap:5px;
+  font-size:12.5px;font-weight:550;color:var(--brand-600);
+  padding:4px 8px;border-radius:7px;transition:.15s var(--ease);
+  white-space:nowrap;
+}
+.more:hover{background:var(--brand-050)}
+.more svg{width:13px;height:13px;stroke:currentColor;stroke-width:2.2;fill:none;flex:none}
+
+.tile-grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(196px,1fr))}
+.tile{
+  background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-lg);
+  padding:15px;box-shadow:var(--shadow-sm);
+  display:flex;flex-direction:column;align-items:flex-start;gap:9px;
+  text-align:left;width:100%;
+  transition:.18s var(--ease);
+}
+.tile:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:var(--brand-100)}
+.tile:active{transform:translateY(0)}
+.tile-top{display:flex;align-items:center;gap:9px;width:100%}
+.tile-ico{
+  width:32px;height:32px;border-radius:9px;flex:none;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--brand-050);color:var(--brand-600);
+}
+.tile-ico svg{width:17px;height:17px;stroke:currentColor;stroke-width:1.9;fill:none}
+.tile-ico.g{background:var(--green-050);color:var(--green-600)}
+.tile-ico.a{background:var(--amber-050);color:var(--amber-700)}
+.tile-ico.v{background:var(--violet-050);color:var(--violet-700)}
+.tile-ico.t{background:var(--teal-050);color:var(--teal-700)}
+.tile-ico.n{background:var(--gray-100);color:var(--gray-600)}
+.tile-count{
+  margin-left:auto;font-size:12px;font-weight:650;color:var(--gray-500);
+  background:var(--gray-050);border:1px solid var(--gray-200);
+  padding:1px 8px;border-radius:99px;font-variant-numeric:tabular-nums;
+}
+.tile h4{margin:0;font-size:13.5px;font-weight:600;letter-spacing:-.006em}
+.tile p{margin:0;font-size:12px;color:var(--gray-500);line-height:1.45}
+.tile .go{
+  margin-top:auto;display:inline-flex;align-items:center;gap:4px;
+  font-size:12px;font-weight:550;color:var(--brand-600);
+  opacity:0;transform:translateX(-3px);transition:.18s var(--ease);
+}
+.tile:hover .go{opacity:1;transform:none}
+.tile .go svg{width:12px;height:12px;stroke:currentColor;stroke-width:2.4;fill:none}
+
+.dash-grid{display:grid;gap:14px;grid-template-columns:1.05fr 1fr}
+@media (max-width:1000px){.dash-grid{grid-template-columns:1fr}}
+
+.pipe-list{padding:6px 18px 16px}
+.pipe-row{
+  display:flex;align-items:center;gap:11px;
+  padding:10px 0;border-bottom:1px solid var(--gray-100);
+}
+.pipe-row:last-child{border-bottom:0}
+.pipe-dot{width:8px;height:8px;border-radius:99px;flex:none}
+.pipe-name{font-size:12.5px;color:var(--gray-700);font-weight:500;min-width:0;flex:1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pipe-bar{width:88px;height:5px;border-radius:99px;background:var(--gray-100);overflow:hidden;flex:none}
+.pipe-bar i{display:block;height:100%;border-radius:99px}
+.pipe-n{font-size:12px;font-weight:650;color:var(--gray-900);width:18px;text-align:right;font-variant-numeric:tabular-nums}
+.pipe-amount{font-size:12px;color:var(--gray-500);width:104px;text-align:right;font-variant-numeric:tabular-nums}
+
+.mini-list{padding:4px 0 8px}
+.mini-row{
+  display:flex;align-items:center;gap:11px;
+  padding:11px 18px;border-bottom:1px solid var(--gray-100);
+  transition:background .13s var(--ease);
+}
+.mini-row:last-child{border-bottom:0}
+.mini-row:hover{background:var(--brand-050)}
+.mini-main{min-width:0;flex:1;display:block}
+.mini-title{display:block;font-size:13px;font-weight:600;color:var(--gray-900);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini-sub{display:block;font-size:11.5px;color:var(--gray-500);margin-top:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.mini-kpi-grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+.mini-kpi{
+  background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius);
+  padding:13px 14px;box-shadow:var(--shadow-xs);
+}
+.mini-kpi .lb{font-size:11.5px;color:var(--gray-500);font-weight:550;line-height:1.3;min-height:30px}
+.mini-kpi .vl{font-size:21px;font-weight:680;letter-spacing:-.02em;margin-top:5px;font-variant-numeric:tabular-nums}
+.mini-kpi .vl small{font-size:13px;color:var(--gray-400);font-weight:600}
+
+.crumb-link{color:var(--gray-500);border-radius:5px;padding:1px 4px;margin:0 -4px;transition:.15s var(--ease)}
+.crumb-link:hover{color:var(--brand-600);background:var(--brand-050)}
+
+.logo-slot--foot{border-radius:8px;padding:4px 5px;margin-left:-5px;transition:.16s var(--ease)}
+.logo-slot--foot:hover{background:rgba(255,255,255,.07)}
+.logo-slot--foot:hover img{opacity:1}
+
+/* ============================================================
+   EMPTY STATE
+   ============================================================ */
+.empty{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:64px 24px;
+}
+.empty-ill{
+  width:88px;height:88px;border-radius:24px;margin-bottom:18px;
+  background:linear-gradient(160deg,var(--brand-050),var(--gray-050));
+  border:1px solid var(--gray-200);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--brand-500);
+  box-shadow:var(--shadow-sm);
+}
+.empty-ill svg{width:36px;height:36px;stroke:currentColor;stroke-width:1.5;fill:none}
+.empty h3{margin:0 0 6px;font-size:15.5px;font-weight:600;letter-spacing:-.01em}
+.empty p{margin:0 0 18px;font-size:13px;color:var(--gray-500);max-width:380px;line-height:1.6}
+
+/* ============================================================
+   MODAL / WIZARD
+   ============================================================ */
+.overlay{
+  position:fixed;inset:0;z-index:80;
+  background:rgba(17,26,45,.5);
+  backdrop-filter:blur(3px);
+  display:none;align-items:center;justify-content:center;
+  padding:24px;
+}
+.overlay.open{display:flex;animation:fade .18s var(--ease)}
+.modal{
+  width:min(880px,100%);max-height:min(880px,92vh);
+  background:#fff;border-radius:var(--radius-xl);
+  box-shadow:var(--shadow-lg);
+  display:flex;flex-direction:column;overflow:hidden;
+  animation:pop .22s var(--ease);
+}
+@keyframes pop{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+.modal-head{
+  padding:18px 22px;border-bottom:1px solid var(--gray-100);
+  display:flex;align-items:flex-start;gap:12px;
+}
+.modal-head h2{margin:0;font-size:16.5px;font-weight:650;letter-spacing:-.015em}
+.modal-head p{margin:2px 0 0;font-size:12.5px;color:var(--gray-500)}
+.modal-close{
+  margin-left:auto;width:32px;height:32px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;color:var(--gray-400);
+  transition:.15s var(--ease);flex:none;
+}
+.modal-close:hover{background:var(--gray-100);color:var(--gray-700)}
+.modal-close svg{width:17px;height:17px;stroke:currentColor;stroke-width:2;fill:none}
+
+.steps{
+  display:flex;align-items:center;gap:4px;
+  padding:14px 22px;background:var(--gray-025);
+  border-bottom:1px solid var(--gray-100);
+}
+.step{display:flex;align-items:center;gap:9px;padding:4px 6px;flex:none}
+.step-num{
+  width:25px;height:25px;border-radius:99px;flex:none;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:650;
+  background:#fff;color:var(--gray-400);
+  border:1.5px solid var(--gray-200);
+  transition:.2s var(--ease);
+}
+.step-num svg{width:13px;height:13px;stroke:currentColor;stroke-width:2.6;fill:none}
+.step-txt{font-size:12.5px;font-weight:550;color:var(--gray-500);white-space:nowrap;transition:.2s var(--ease)}
+.step.active .step-num{background:var(--brand-500);border-color:var(--brand-500);color:#fff;box-shadow:0 0 0 4px var(--brand-050)}
+.step.active .step-txt{color:var(--gray-900);font-weight:600}
+.step.done .step-num{background:var(--green-050);border-color:var(--green-500);color:var(--green-600)}
+.step.done .step-txt{color:var(--gray-700)}
+.step-line{flex:1;height:1.5px;background:var(--gray-200);border-radius:99px;min-width:14px}
+
+.modal-body{padding:22px;overflow-y:auto;flex:1}
+.step-panel{display:none;animation:fade .2s var(--ease)}
+.step-panel.active{display:block}
+.form-grid{display:grid;gap:15px;grid-template-columns:repeat(2,1fr)}
+.form-grid .full{grid-column:1/-1}
+.hint{font-size:11.5px;color:var(--gray-400);margin-top:1px}
+
+.editor{
+  border:1px solid var(--gray-200);border-radius:10px;overflow:hidden;background:#fff;
+}
+.editor-bar{
+  display:flex;align-items:center;gap:2px;flex-wrap:wrap;
+  padding:6px 8px;background:var(--gray-025);border-bottom:1px solid var(--gray-100);
+}
+.editor-bar button{
+  width:28px;height:28px;border-radius:6px;color:var(--gray-500);
+  display:flex;align-items:center;justify-content:center;transition:.14s var(--ease);
+}
+.editor-bar button:hover{background:var(--gray-100);color:var(--gray-800)}
+.editor-bar svg{width:15px;height:15px;stroke:currentColor;stroke-width:1.9;fill:none}
+.editor-bar .sep{width:1px;height:18px;background:var(--gray-200);margin:0 5px}
+.editor-area{
+  min-height:180px;padding:14px;font-size:13px;color:var(--gray-700);line-height:1.65;
+}
+.editor-area:focus{outline:none}
+.editor-area .ph{color:var(--gray-400)}
+
+.recipients-bar{
+  display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;
+}
+.recipients-bar .field{flex:1;min-width:165px}
+.rec-summary{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 14px;border-radius:10px;
+  background:var(--brand-050);border:1px solid var(--brand-100);
+  color:var(--brand-700);font-size:12.5px;font-weight:550;margin-top:14px;
+}
+.rec-summary svg{width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none}
+.check{
+  width:17px;height:17px;border-radius:5px;
+  border:1.5px solid var(--gray-300);background:#fff;
+  display:inline-flex;align-items:center;justify-content:center;
+  transition:.15s var(--ease);vertical-align:middle;
+}
+.check svg{width:11px;height:11px;stroke:#fff;stroke-width:3;fill:none;opacity:0}
+.check.on{background:var(--brand-500);border-color:var(--brand-500)}
+.check.on svg{opacity:1}
+
+.modal-foot{
+  padding:14px 22px;border-top:1px solid var(--gray-100);
+  display:flex;align-items:center;gap:10px;background:var(--gray-025);
+}
+.modal-foot .spacer{margin-left:auto}
+.step-count{font-size:12.5px;color:var(--gray-500)}
+
+/* ============================================================
+   MISC
+   ============================================================ */
+.view-head{display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+.view-head .vh-title{font-size:19px;font-weight:650;letter-spacing:-.02em}
+.view-head .vh-sub{font-size:13px;color:var(--gray-500);margin-top:3px}
+.view-head .vh-actions{margin-left:auto;display:flex;gap:9px;flex-wrap:wrap}
+
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--gray-200);margin-bottom:16px;overflow-x:auto}
+.tab{
+  padding:9px 13px;font-size:13px;font-weight:550;color:var(--gray-500);
+  border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;
+  transition:.15s var(--ease);
+}
+.tab:hover{color:var(--gray-800)}
+.tab.active{color:var(--brand-600);border-bottom-color:var(--brand-500)}
+
+.segmented{
+  display:inline-flex;padding:3px;background:var(--gray-100);border-radius:9px;gap:2px;
+}
+.segmented button{
+  padding:5px 11px;border-radius:7px;font-size:12.5px;font-weight:550;color:var(--gray-600);
+  transition:.15s var(--ease);
+}
+.segmented button.active{background:#fff;color:var(--gray-900);box-shadow:var(--shadow-xs)}
+
+.scrim{display:none}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width:1180px){
+  .sidebar{width:70px}
+  .nav-item span.lbl,.nav-label,.user-mini .meta,.nav-item .chip{display:none}
+  .nav-item{justify-content:center;padding:10px}
+  .logo-slot{margin:16px 10px 14px;justify-content:center}
+  .logo-slot .brand-full{display:none}
+  .logo-slot .brand-icon{display:block}
+  .brand-btn{padding:9px;border-radius:11px}
+  .logo-slot--foot{margin:0 0 12px;justify-content:center}
+  .sidebar-foot{padding:12px 10px}
+  .user-mini{justify-content:center}
+}
+@media (max-width:900px){
+  .sidebar{
+    position:fixed;left:0;top:0;height:100vh;width:var(--sidebar-w);
+    transform:translateX(-100%);transition:transform .24s var(--ease);
+    box-shadow:var(--shadow-lg);
+  }
+  .sidebar.open{transform:none}
+  .sidebar .nav-item span.lbl,.sidebar .nav-label,.sidebar .user-mini .meta,.sidebar .nav-item .chip{display:block}
+  .sidebar .nav-item{justify-content:flex-start;padding:9px 10px}
+  .sidebar .logo-slot{margin:18px 16px 16px;justify-content:flex-start}
+  .sidebar .logo-slot .brand-full{display:block}
+  .sidebar .logo-slot .brand-icon{display:none}
+  .sidebar .brand-btn{padding:10px 15px;border-radius:12px}
+  .sidebar .logo-slot--foot{margin:0 0 14px;justify-content:flex-start}
+  .sidebar .sidebar-foot{padding:12px 16px 16px}
+  .hamburger{display:flex}
+  .scrim{display:block;position:fixed;inset:0;background:rgba(17,26,45,.42);z-index:35;opacity:0;pointer-events:none;transition:.22s var(--ease)}
+  .scrim.on{opacity:1;pointer-events:auto}
+  .search{width:170px}
+  .content{padding:18px 16px 32px}
+  .topbar{padding:0 16px}
+  .form-grid{grid-template-columns:1fr}
+}
+@media (max-width:620px){
+  .search{display:none}
+  .kpi-value{font-size:24px}
+  .donut-wrap{gap:16px}
+}
+</style>
+</head>
+<body>
+
+<!-- ===================== BANNER ===================== -->
+<div class="toast" id="previewToast" role="status">
+  <span class="toast-dot"></span>
+  <span><strong>Preview visual de rediseño</strong> · los datos son de muestra</span>
+  <button class="toast-close" id="noteClose" aria-label="Cerrar aviso">
+    <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+  </button>
+</div>
+
+<div class="scrim" id="scrim"></div>
+
+<div class="app">
+
+  <!-- ===================== SIDEBAR ===================== -->
+  <aside class="sidebar" id="sidebar">
+    <!-- Logo de Shutpoint sobre botón blanco -->
+    <div class="logo-slot">
+      <button class="brand-btn" data-goto="dashboard" title="Ir al dashboard">
+        <img class="brand-full" src="assets/shutpoint-logo-color.png" alt="Shutpoint" />
+        <img class="brand-icon" src="assets/shutpoint-icon-color.png" alt="Shutpoint" />
+      </button>
+    </div>
+
+    <nav class="nav">
+      <div class="nav-label">Operación</div>
+
+      <button class="nav-item active" data-view="dashboard">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        <span class="lbl">Dashboard</span>
+      </button>
+
+      <button class="nav-item" data-view="tareas">
+        <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        <span class="lbl">Tareas</span>
+        <span class="chip">6</span>
+      </button>
+
+      <button class="nav-item" data-view="desempeno">
+        <svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+        <span class="lbl">Desempeño</span>
+      </button>
+
+      <button class="nav-item" data-view="kanban">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="6" height="18" rx="1.5"/><rect x="11" y="3" width="6" height="12" rx="1.5"/><rect x="19" y="3" width="2" height="16" rx="1"/></svg>
+        <span class="lbl">Kanban de clientes</span>
+      </button>
+
+      <button class="nav-item" data-view="clientes">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        <span class="lbl">Clientes</span>
+      </button>
+
+      <button class="nav-item" data-view="supervision">
+        <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        <span class="lbl">Supervisión</span>
+      </button>
+
+      <div class="nav-label">Módulos</div>
+
+      <button class="nav-item" data-view="mercadotecnia">
+        <svg viewBox="0 0 24 24"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 11-5.8-1.6"/></svg>
+        <span class="lbl">Mercadotecnia</span>
+      </button>
+
+      <button class="nav-item" data-view="servicio">
+        <svg viewBox="0 0 24 24"><path d="M3 18v-6a9 9 0 0118 0v6"/><path d="M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z"/></svg>
+        <span class="lbl">Servicio al cliente</span>
+      </button>
+
+      <button class="nav-item" data-view="spmail">
+        <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/></svg>
+        <span class="lbl">SP Mail</span>
+      </button>
+
+      <button class="nav-item" data-view="catalogos">
+        <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+        <span class="lbl">Catálogos</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-foot">
+      <!-- Powered by Axsis · lleva al Dashboard -->
+      <button class="logo-slot logo-slot--foot" data-goto="dashboard" title="Ir al dashboard">
+        <img class="brand-full" src="assets/powered-by-axsis-blanco.png" alt="powered by axsis" />
+        <img class="brand-icon" src="assets/axsis-icon-blanco.png" alt="Axsis" />
+      </button>
+      <div class="user-mini">
+        <div class="avatar">RF</div>
+        <div class="meta">
+          <div class="name">Rodrigo Franco</div>
+          <div class="role">Axsis Tecnología</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ===================== MAIN ===================== -->
+  <div class="main">
+
+    <header class="topbar">
+      <button class="hamburger" id="hamburger" aria-label="Menú">
+        <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <div>
+        <div class="crumbs"><span><button class="crumb-link" data-goto="dashboard">Shutpoint</button></span><span id="crumbView">Dashboard</span></div>
+        <div class="page-title" id="pageTitle">Dashboard</div>
+      </div>
+      <div class="topbar-actions">
+        <div class="search">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.2-4.2"/></svg>
+          <input type="text" placeholder="Buscar…" />
+        </div>
+        <button class="icon-btn" aria-label="Notificaciones">
+          <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
+          <span class="badge-dot"></span>
+        </button>
+        <button class="icon-btn" aria-label="Ayuda">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 015.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="content">
+
+      <!-- ============ VISTA: DASHBOARD ============ -->
+      <section class="view active" id="view-dashboard">
+        <div class="greeting">
+          <h1 id="greetTitle">Hola, Rodrigo Franco</h1>
+          <p><span class="date" id="greetDate"></span> · Resumen general de Shutpoint</p>
+        </div>
+
+        <div class="section-head">
+          <h2>Accesos rápidos</h2>
+        </div>
+        <div class="tile-grid" id="tileGrid"></div>
+
+        <div class="section-head">
+          <h2>Indicadores del periodo</h2>
+          <button class="more" data-goto="desempeno">Ver desempeño <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        </div>
+        <div class="mini-kpi-grid" id="miniKpis"></div>
+
+        <div class="dash-grid" style="margin-top:14px">
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <div class="card-title">Pipeline por etapa</div>
+                <div class="card-sub">Clientes y monto por columna del kanban</div>
+              </div>
+              <button class="more" data-goto="kanban" style="margin-left:auto">Ver kanban <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+            </div>
+            <div class="pipe-list" id="pipeList"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <div class="card-title">Compromisos por cerrar</div>
+                <div class="card-sub">Pendientes y vencidos</div>
+              </div>
+              <button class="more" data-goto="tareas" style="margin-left:auto">Ver tareas <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+            </div>
+            <div class="mini-list" id="pendingList"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ VISTA: TAREAS / COMPROMISOS ============ -->
+      <section class="view" id="view-tareas">
+        <div class="view-head">
+          <div>
+            <div class="vh-title">Compromisos / Tareas</div>
+            <div class="vh-sub">Seguimientos registrados por responsable y cliente</div>
+          </div>
+          <div class="vh-actions">
+            <button class="btn btn-secondary"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>Exportar</button>
+            <button class="btn btn-primary"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Nuevo compromiso</button>
+          </div>
+        </div>
+
+        <div class="tabs">
+          <button class="tab active">Todos</button>
+          <button class="tab">Pendientes</button>
+          <button class="tab">Cumplidos</button>
+          <button class="tab">Vencidos</button>
+        </div>
+
+        <div class="card">
+          <div class="table-toolbar">
+            <div class="segmented">
+              <button class="active">Mis compromisos</button>
+              <button>De mi equipo</button>
+            </div>
+            <span class="spacer"></span>
+            <span class="result-count"><b>6</b> compromisos</span>
+            <button class="btn btn-secondary btn-sm"><svg viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filtros</button>
+          </div>
+
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th><span class="th-in">Folio <svg viewBox="0 0 24 24"><path d="M7 15l5 5 5-5M7 9l5-5 5 5"/></svg></span></th>
+                  <th><span class="th-in">Responsable <svg viewBox="0 0 24 24"><path d="M7 15l5 5 5-5M7 9l5-5 5 5"/></svg></span></th>
+                  <th><span class="th-in">Cliente <svg viewBox="0 0 24 24"><path d="M7 15l5 5 5-5M7 9l5-5 5 5"/></svg></span></th>
+                  <th>Tipo de compromiso</th>
+                  <th><span class="th-in">Fecha de compromiso <svg viewBox="0 0 24 24"><path d="M7 15l5 5 5-5M7 9l5-5 5 5"/></svg></span></th>
+                  <th>Fecha de cumplimiento</th>
+                  <th>Comentarios</th>
+                  <th>Estatus</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyTareas"></tbody>
+            </table>
+          </div>
+
+          <div class="pagination">
+            <span>Mostrando 1–6 de 6</span>
+            <div class="pages">
+              <button class="page-btn" disabled>‹</button>
+              <button class="page-btn active">1</button>
+              <button class="page-btn" disabled>›</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ VISTA: DESEMPEÑO ============ -->
+      <section class="view" id="view-desempeno">
+        <div class="view-head">
+          <div>
+            <div class="vh-title">Desempeño</div>
+            <div class="vh-sub">Indicadores de cumplimiento, efectividad y generación</div>
+          </div>
+          <div class="vh-actions">
+            <div class="field" style="min-width:170px">
+              <div class="select-wrap">
+                <select><option>Periodo actual</option><option>Mes anterior</option><option>Trimestre</option><option>Año</option></select>
+                <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+              </div>
+            </div>
+            <button class="btn btn-secondary"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>Exportar</button>
+          </div>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi">
+            <div class="kpi-top">
+              <div class="kpi-ico g"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>
+              <div class="kpi-label">Cumplimiento de compromisos</div>
+            </div>
+            <div class="kpi-value">78<small>%</small></div>
+            <div class="progress"><i class="g" style="width:78%"></i></div>
+            <div class="kpi-foot">Compromisos cumplidos en tiempo</div>
+          </div>
+
+          <div class="kpi">
+            <div class="kpi-top">
+              <div class="kpi-ico"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 15h6"/></svg></div>
+              <div class="kpi-label">Efectividad en cotizaciones</div>
+            </div>
+            <div class="kpi-value">42<small>%</small></div>
+            <div class="progress"><i style="width:42%"></i></div>
+            <div class="kpi-foot">Cotizaciones concretadas / emitidas</div>
+          </div>
+
+          <div class="kpi">
+            <div class="kpi-top">
+              <div class="kpi-ico a"><svg viewBox="0 0 24 24"><path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+              <div class="kpi-label">Efectividad en monto cotizado</div>
+            </div>
+            <div class="kpi-value">35<small>%</small></div>
+            <div class="progress"><i class="a" style="width:35%"></i></div>
+            <div class="kpi-foot">Monto concretado / monto cotizado</div>
+          </div>
+
+          <div class="kpi">
+            <div class="kpi-top">
+              <div class="kpi-ico v"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 11h-6"/></svg></div>
+              <div class="kpi-label">Leads generados</div>
+            </div>
+            <div class="kpi-value">24</div>
+            <div class="kpi-foot">En el periodo seleccionado</div>
+          </div>
+
+          <div class="kpi">
+            <div class="kpi-top">
+              <div class="kpi-ico t"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg></div>
+              <div class="kpi-label">Prospectos generados</div>
+            </div>
+            <div class="kpi-value">15</div>
+            <div class="kpi-foot">En el periodo seleccionado</div>
+          </div>
+
+          <div class="kpi">
+            <div class="kpi-top">
+              <div class="kpi-ico g"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+              <div class="kpi-label">Clientes generados</div>
+            </div>
+            <div class="kpi-value">6</div>
+            <div class="kpi-foot">En el periodo seleccionado</div>
+          </div>
+        </div>
+
+        <div class="chart-grid">
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <div class="card-title">Cotizaciones concretadas por responsable</div>
+                <div class="card-sub">Distribución del periodo</div>
+              </div>
+            </div>
+            <div class="donut-wrap">
+              <div class="donut">
+                <svg viewBox="0 0 120 120" id="donutResp"></svg>
+                <div class="donut-center"><b id="donutRespTotal">0</b><span>Concretadas</span></div>
+              </div>
+              <div class="legend" id="legendResp"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <div class="card-title">Cotizaciones concretadas por tipo</div>
+                <div class="card-sub">Distribución del periodo</div>
+              </div>
+            </div>
+            <div class="donut-wrap">
+              <div class="donut">
+                <svg viewBox="0 0 120 120" id="donutTipo"></svg>
+                <div class="donut-center"><b id="donutTipoTotal">0</b><span>Concretadas</span></div>
+              </div>
+              <div class="legend" id="legendTipo"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ VISTA: KANBAN ============ -->
+      <section class="view" id="view-kanban">
+        <div class="view-head">
+          <div>
+            <div class="vh-title">Kanban de clientes</div>
+            <div class="vh-sub">Pipeline comercial por etapa</div>
+          </div>
+          <div class="vh-actions">
+            <div class="segmented">
+              <button class="active">Kanban</button>
+              <button data-goto="clientes">Tabla</button>
+            </div>
+            <button class="btn btn-secondary"><svg viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filtros</button>
+            <button class="btn btn-primary"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Nuevo cliente</button>
+          </div>
+        </div>
+        <div class="kanban" id="kanban"></div>
+      </section>
+
+      <!-- ============ VISTA: CLIENTES ============ -->
+      <section class="view" id="view-clientes">
+        <div class="view-head">
+          <div>
+            <div class="vh-title">Clientes</div>
+            <div class="vh-sub">Listado general de clientes y prospectos</div>
+          </div>
+          <div class="vh-actions">
+            <div class="segmented">
+              <button class="active">Tabla</button>
+              <button data-goto="kanban">Kanban</button>
+            </div>
+            <button class="btn btn-secondary"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>Exportar</button>
+            <button class="btn btn-primary"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Nuevo cliente</button>
+          </div>
+        </div>
+
+        <div class="filters">
+          <div class="field">
+            <label>Zona de usuario</label>
+            <div class="select-wrap">
+              <select><option>Todas</option><option>Zona 1</option><option>Zona 2</option><option>Zona 3</option></select>
+              <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+          </div>
+          <div class="field">
+            <label>Responsable</label>
+            <div class="select-wrap">
+              <select><option>Todos</option><option>Responsable 1</option><option>Responsable 2</option><option>Responsable 3</option></select>
+              <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+          </div>
+          <div class="field">
+            <label>Compartido con</label>
+            <div class="select-wrap">
+              <select><option>Todos</option><option>Responsable 1</option><option>Responsable 2</option></select>
+              <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+          </div>
+          <div class="field">
+            <label>Tipo de cliente</label>
+            <div class="select-wrap">
+              <select><option>Todos</option><option>Target</option><option>Lead</option><option>Prospecto</option><option>Cliente</option></select>
+              <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+          </div>
+          <div class="field">
+            <label>Campaña</label>
+            <div class="select-wrap">
+              <select><option>Todas</option><option>Campaña 1</option><option>Campaña 2</option></select>
+              <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+          </div>
+          <div class="filters-actions">
+            <button class="btn btn-primary"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.2-4.2"/></svg>Buscar</button>
+            <button class="btn btn-ghost">Limpiar</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="table-toolbar">
+            <span class="result-count"><b>8</b> clientes encontrados</span>
+            <span class="spacer"></span>
+            <button class="btn btn-secondary btn-sm"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Columnas</button>
+          </div>
+
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th><span class="th-in">Nombre <svg viewBox="0 0 24 24"><path d="M7 15l5 5 5-5M7 9l5-5 5 5"/></svg></span></th>
+                  <th>Fuente de prospección</th>
+                  <th>Tipo cliente</th>
+                  <th>Giro comercial</th>
+                  <th>Estatus</th>
+                  <th>Grupo</th>
+                  <th><span class="th-in">Fecha de alta <svg viewBox="0 0 24 24"><path d="M7 15l5 5 5-5M7 9l5-5 5 5"/></svg></span></th>
+                  <th>Características adicionales</th>
+                  <th>Necesidades</th>
+                  <th>Zona</th>
+                  <th>Activo</th>
+                  <th>Responsable</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyClientes"></tbody>
+            </table>
+          </div>
+
+          <div class="pagination">
+            <span>Mostrando 1–8 de 8</span>
+            <div class="pages">
+              <button class="page-btn" disabled>‹</button>
+              <button class="page-btn active">1</button>
+              <button class="page-btn" disabled>›</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ VISTA: MERCADOTECNIA (acceso a modal Campaña) ============ -->
+      <section class="view" id="view-mercadotecnia">
+        <div class="view-head">
+          <div>
+            <div class="vh-title">Mercadotecnia</div>
+            <div class="vh-sub">Campañas</div>
+          </div>
+          <div class="vh-actions">
+            <button class="btn btn-primary" id="openCampaign"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Nueva campaña</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="empty">
+            <div class="empty-ill">
+              <svg viewBox="0 0 24 24"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 11-5.8-1.6"/></svg>
+            </div>
+            <h3>Modal de campaña</h3>
+            <p>El wizard de campaña (Datos Generales · Contenido · Destinatarios) se abre desde el botón «Nueva campaña».</p>
+            <button class="btn btn-primary" data-open-campaign><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Abrir wizard de campaña</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ VISTAS SIN CAPTURA (estado vacío) ============ -->
+      <section class="view" id="view-supervision"></section>
+      <section class="view" id="view-servicio"></section>
+      <section class="view" id="view-spmail"></section>
+      <section class="view" id="view-catalogos"></section>
+
+    </main>
+  </div>
+</div>
+
+<!-- ===================== MODAL CAMPAÑA ===================== -->
+<div class="overlay" id="campaignOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="campaignTitle">
+    <div class="modal-head">
+      <div>
+        <h2 id="campaignTitle">Campaña</h2>
+        <p>Configura los datos, el contenido y los destinatarios de la campaña</p>
+      </div>
+      <button class="modal-close" id="campaignClose" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div class="steps" id="steps">
+      <div class="step active" data-step="1"><div class="step-num">1</div><div class="step-txt">Datos Generales</div></div>
+      <div class="step-line"></div>
+      <div class="step" data-step="2"><div class="step-num">2</div><div class="step-txt">Contenido</div></div>
+      <div class="step-line"></div>
+      <div class="step" data-step="3"><div class="step-num">3</div><div class="step-txt">Destinatarios</div></div>
+    </div>
+
+    <div class="modal-body">
+      <!-- Paso 1 -->
+      <div class="step-panel active" data-panel="1">
+        <div class="form-grid">
+          <div class="field full">
+            <label>Nombre de la campaña</label>
+            <input class="input" type="text" placeholder="Nombre de la campaña" />
+          </div>
+          <div class="field">
+            <label>Tipo de campaña</label>
+            <div class="select-wrap">
+              <select><option>Selecciona…</option><option>Tipo 1</option><option>Tipo 2</option><option>Tipo 3</option></select>
+              <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+          </div>
+          <div class="field">
+            <label>Responsable</label>
+            <div class="select-wrap">
+              <select><option>Selecciona…</option><option>Responsable 1</option><option>Responsable 2</option></select>
+              <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+          </div>
+          <div class="field">
+            <label>Fecha de inicio</label>
+            <input class="input" type="date" />
+          </div>
+          <div class="field">
+            <label>Fecha de fin</label>
+            <input class="input" type="date" />
+          </div>
+          <div class="field full">
+            <label>Descripción</label>
+            <textarea class="input" placeholder="Descripción de la campaña"></textarea>
+            <div class="hint">Campos de referencia — ajustar a los del formulario original.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Paso 2 -->
+      <div class="step-panel" data-panel="2">
+        <div class="form-grid">
+          <div class="field full">
+            <label>Asunto</label>
+            <input class="input" type="text" placeholder="Asunto del mensaje" />
+          </div>
+          <div class="field full">
+            <label>Contenido</label>
+            <div class="editor">
+              <div class="editor-bar">
+                <button title="Negrita"><svg viewBox="0 0 24 24"><path d="M6 4h8a4 4 0 010 8H6zM6 12h9a4 4 0 010 8H6z"/></svg></button>
+                <button title="Cursiva"><svg viewBox="0 0 24 24"><path d="M19 4h-9M14 20H5M15 4L9 20"/></svg></button>
+                <button title="Subrayado"><svg viewBox="0 0 24 24"><path d="M6 3v7a6 6 0 0012 0V3M4 21h16"/></svg></button>
+                <span class="sep"></span>
+                <button title="Lista"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></button>
+                <button title="Enlace"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.5.5l3-3a5 5 0 00-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 00-7.5-.5l-3 3a5 5 0 007 7l1.7-1.7"/></svg></button>
+                <button title="Imagen"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></button>
+              </div>
+              <div class="editor-area" contenteditable="true"><span class="ph">Escribe el contenido de la campaña…</span></div>
+            </div>
+          </div>
+          <div class="field full">
+            <label>Archivos adjuntos</label>
+            <div class="rec-summary" style="background:var(--gray-050);border-color:var(--gray-200);color:var(--gray-600)">
+              <svg viewBox="0 0 24 24"><path d="M21.4 11.05l-9.2 9.2a5 5 0 01-7.1-7.1l9.2-9.2a3.5 3.5 0 014.9 4.9l-9.2 9.2a2 2 0 01-2.8-2.8l8.5-8.5"/></svg>
+              Arrastra archivos aquí o haz clic para seleccionar
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Paso 3 -->
+      <div class="step-panel" data-panel="3">
+        <div class="recipients-bar">
+          <div class="field">
+            <label>Zona de usuario</label>
+            <div class="select-wrap">
+              <select><option>Todas</option><option>Zona 1</option><option>Zona 2</option></select>
+              <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+          </div>
+          <div class="field">
+            <label>Responsable</label>
+            <div class="select-wrap">
+              <select><option>Todos</option><option>Responsable 1</option><option>Responsable 2</option></select>
+              <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+          </div>
+          <div class="field">
+            <label>Tipo de cliente</label>
+            <div class="select-wrap">
+              <select><option>Todos</option><option>Lead</option><option>Prospecto</option><option>Cliente</option></select>
+              <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="box-shadow:none">
+          <div class="table-scroll" style="max-height:270px;overflow-y:auto">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:44px"><span class="check on" data-check><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span></th>
+                  <th>Nombre</th>
+                  <th>Tipo cliente</th>
+                  <th>Zona</th>
+                  <th>Responsable</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyDestinatarios"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="rec-summary">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/></svg>
+          <span id="recCount">5</span>&nbsp;destinatarios seleccionados
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-foot">
+      <button class="btn btn-ghost" id="btnPrev">Anterior</button>
+      <span class="step-count" id="stepCount">Paso 1 de 3</span>
+      <span class="spacer"></span>
+      <button class="btn btn-secondary" id="btnCancel">Cancelar</button>
+      <button class="btn btn-primary" id="btnNext">Siguiente</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   DATOS DE MUESTRA (reemplazar con los datos reales)
+   ============================================================ */
+const CLIENTES = [
+  {n:'Cliente Demo 01',fuente:'Recomendación',tipo:'Cliente',tipoB:'b-green',giro:'Manufactura',estatus:'Activo',estB:'b-green',grupo:'Grupo A',alta:'12/01/2026',carac:'Característica adicional de muestra',neces:'Necesidad registrada de muestra',zona:'Zona 1',activo:true,resp:'Responsable 1'},
+  {n:'Cliente Demo 02',fuente:'Sitio web',tipo:'Prospecto',tipoB:'b-blue',giro:'Comercio',estatus:'En nutrición',estB:'b-amber',grupo:'Grupo A',alta:'18/01/2026',carac:'Característica adicional de muestra',neces:'Necesidad registrada de muestra',zona:'Zona 2',activo:true,resp:'Responsable 2'},
+  {n:'Cliente Demo 03',fuente:'Campaña',tipo:'Lead',tipoB:'b-violet',giro:'Servicios',estatus:'Por activar',estB:'b-gray',grupo:'Grupo B',alta:'02/02/2026',carac:'Característica adicional de muestra',neces:'Necesidad registrada de muestra',zona:'Zona 1',activo:false,resp:'Responsable 1'},
+  {n:'Cliente Demo 04',fuente:'Referido',tipo:'Cliente',tipoB:'b-green',giro:'Construcción',estatus:'Activo',estB:'b-green',grupo:'Grupo B',alta:'09/02/2026',carac:'Característica adicional de muestra',neces:'Necesidad registrada de muestra',zona:'Zona 3',activo:true,resp:'Responsable 3'},
+  {n:'Cliente Demo 05',fuente:'Evento',tipo:'Target',tipoB:'b-gray',giro:'Logística',estatus:'Inactivo',estB:'b-red',grupo:'Grupo C',alta:'21/02/2026',carac:'Característica adicional de muestra',neces:'Necesidad registrada de muestra',zona:'Zona 2',activo:false,resp:'Responsable 2'},
+  {n:'Cliente Demo 06',fuente:'Llamada en frío',tipo:'Prospecto',tipoB:'b-blue',giro:'Salud',estatus:'En nutrición',estB:'b-amber',grupo:'Grupo C',alta:'05/03/2026',carac:'Característica adicional de muestra',neces:'Necesidad registrada de muestra',zona:'Zona 1',activo:true,resp:'Responsable 1'},
+  {n:'Cliente Demo 07',fuente:'Sitio web',tipo:'Lead',tipoB:'b-violet',giro:'Educación',estatus:'Calificado',estB:'b-teal',grupo:'Grupo A',alta:'14/03/2026',carac:'Característica adicional de muestra',neces:'Necesidad registrada de muestra',zona:'Zona 3',activo:true,resp:'Responsable 3'},
+  {n:'Cliente Demo 08',fuente:'Recomendación',tipo:'Cliente',tipoB:'b-green',giro:'Tecnología',estatus:'Activo',estB:'b-green',grupo:'Grupo B',alta:'27/03/2026',carac:'Característica adicional de muestra',neces:'Necesidad registrada de muestra',zona:'Zona 2',activo:true,resp:'Responsable 2'}
+];
+
+const TAREAS = [
+  {folio:'CMP-0001',resp:'Responsable 1',cli:'Cliente Demo 01',tipo:'Llamada',fc:'15/07/2026',fcum:'15/07/2026',com:'Comentario de seguimiento de muestra',est:'Cumplido',estB:'b-green'},
+  {folio:'CMP-0002',resp:'Responsable 2',cli:'Cliente Demo 02',tipo:'Visita',fc:'18/07/2026',fcum:'—',com:'Comentario de seguimiento de muestra',est:'Pendiente',estB:'b-amber'},
+  {folio:'CMP-0003',resp:'Responsable 1',cli:'Cliente Demo 03',tipo:'Envío de cotización',fc:'20/07/2026',fcum:'—',com:'Comentario de seguimiento de muestra',est:'Pendiente',estB:'b-amber'},
+  {folio:'CMP-0004',resp:'Responsable 3',cli:'Cliente Demo 04',tipo:'Correo',fc:'10/07/2026',fcum:'—',com:'Comentario de seguimiento de muestra',est:'Vencido',estB:'b-red'},
+  {folio:'CMP-0005',resp:'Responsable 2',cli:'Cliente Demo 06',tipo:'Reunión',fc:'22/07/2026',fcum:'22/07/2026',com:'Comentario de seguimiento de muestra',est:'Cumplido',estB:'b-green'},
+  {folio:'CMP-0006',resp:'Responsable 3',cli:'Cliente Demo 07',tipo:'Llamada',fc:'24/07/2026',fcum:'—',com:'Comentario de seguimiento de muestra',est:'Pendiente',estB:'b-amber'}
+];
+
+const KANBAN = [
+  {t:'Target (inactive)',c:'#9AA6B8',cards:[
+    {n:'Cliente Demo 05',r:'Responsable 2',tp:'Target',f:'21/02/2026',m:'$0.00'},
+    {n:'Cliente Demo 11',r:'Responsable 1',tp:'Target',f:'02/03/2026',m:'$0.00'}
+  ]},
+  {t:'Lead por activar',c:'#7C6BD6',cards:[
+    {n:'Cliente Demo 03',r:'Responsable 1',tp:'Lead',f:'02/02/2026',m:'$0.00'},
+    {n:'Cliente Demo 12',r:'Responsable 3',tp:'Lead',f:'11/03/2026',m:'$0.00'},
+    {n:'Cliente Demo 13',r:'Responsable 2',tp:'Lead',f:'19/03/2026',m:'$0.00'}
+  ]},
+  {t:'Lead calificado (activado)',c:'#12766E',cards:[
+    {n:'Cliente Demo 07',r:'Responsable 3',tp:'Lead',f:'14/03/2026',m:'$85,000.00'},
+    {n:'Cliente Demo 14',r:'Responsable 1',tp:'Lead',f:'28/03/2026',m:'$42,500.00'}
+  ]},
+  {t:'Oportunidad / Cotización',c:'#2B85D1',cards:[
+    {n:'Cliente Demo 02',r:'Responsable 2',tp:'Prospecto',f:'18/01/2026',m:'$310,000.00'},
+    {n:'Cliente Demo 15',r:'Responsable 1',tp:'Prospecto',f:'04/04/2026',m:'$128,900.00'},
+    {n:'Cliente Demo 16',r:'Responsable 3',tp:'Prospecto',f:'12/04/2026',m:'$76,400.00'}
+  ]},
+  {t:'Prospecto en nutrición',c:'#E1930F',cards:[
+    {n:'Cliente Demo 06',r:'Responsable 1',tp:'Prospecto',f:'05/03/2026',m:'$54,000.00'},
+    {n:'Cliente Demo 17',r:'Responsable 2',tp:'Prospecto',f:'22/04/2026',m:'$96,200.00'}
+  ]},
+  {t:'Cliente en nutrición',c:'#27A35C',cards:[
+    {n:'Cliente Demo 01',r:'Responsable 1',tp:'Cliente',f:'12/01/2026',m:'$425,000.00'},
+    {n:'Cliente Demo 04',r:'Responsable 3',tp:'Cliente',f:'09/02/2026',m:'$188,750.00'},
+    {n:'Cliente Demo 08',r:'Responsable 2',tp:'Cliente',f:'27/03/2026',m:'$233,100.00'}
+  ]}
+];
+
+const CHART_RESP = [
+  {l:'Responsable 1',v:12,c:'#2B85D1'},
+  {l:'Responsable 2',v:8,c:'#1B2A4E'},
+  {l:'Responsable 3',v:5,c:'#27A35C'},
+  {l:'Responsable 4',v:3,c:'#E1930F'}
+];
+const CHART_TIPO = [
+  {l:'Tipo 1',v:14,c:'#2B85D1'},
+  {l:'Tipo 2',v:9,c:'#7C6BD6'},
+  {l:'Tipo 3',v:5,c:'#12766E'}
+];
+
+/* KPIs del periodo — mismos valores que la vista Desempeño */
+const KPIS = [
+  {l:'Cumplimiento de compromisos',v:'78',u:'%'},
+  {l:'Efectividad en cotizaciones',v:'42',u:'%'},
+  {l:'Efectividad en monto cotizado',v:'35',u:'%'},
+  {l:'Leads generados',v:'24',u:''},
+  {l:'Prospectos generados',v:'15',u:''},
+  {l:'Clientes generados',v:'6',u:''}
+];
+
+const TITLES = {
+  dashboard:['Dashboard','Dashboard'],
+  tareas:['Tareas','Compromisos / Tareas'],
+  desempeno:['Desempeño','Desempeño'],
+  kanban:['Kanban de clientes','Kanban de clientes'],
+  clientes:['Clientes','Clientes'],
+  supervision:['Supervisión','Supervisión'],
+  mercadotecnia:['Mercadotecnia','Mercadotecnia'],
+  servicio:['Servicio al cliente','Servicio al cliente'],
+  spmail:['SP Mail','SP Mail'],
+  catalogos:['Catálogos','Catálogos']
+};
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+const ini = s => s.split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+
+function renderClientes(){
+  document.getElementById('tbodyClientes').innerHTML = CLIENTES.map(c=>`
+    <tr>
+      <td class="cell-strong">
+        <div class="cell-name"><span class="name-badge">${ini(c.n)}</span><span>${c.n}</span></div>
+      </td>
+      <td>${c.fuente}</td>
+      <td><span class="badge ${c.tipoB}">${c.tipo}</span></td>
+      <td>${c.giro}</td>
+      <td><span class="badge ${c.estB}">${c.estatus}</span></td>
+      <td class="cell-muted">${c.grupo}</td>
+      <td class="cell-muted">${c.alta}</td>
+      <td class="cell-wrap">${c.carac}</td>
+      <td class="cell-wrap">${c.neces}</td>
+      <td class="cell-muted">${c.zona}</td>
+      <td><span class="switch ${c.activo?'on':''}"></span></td>
+      <td><div class="person"><span class="av">${ini(c.resp)}</span>${c.resp}</div></td>
+    </tr>`).join('');
+}
+
+function renderTareas(){
+  document.getElementById('tbodyTareas').innerHTML = TAREAS.map(t=>`
+    <tr>
+      <td class="cell-strong">${t.folio}</td>
+      <td><div class="person"><span class="av">${ini(t.resp)}</span>${t.resp}</div></td>
+      <td class="cell-strong">${t.cli}</td>
+      <td><span class="badge plain b-gray">${t.tipo}</span></td>
+      <td class="cell-muted">${t.fc}</td>
+      <td class="cell-muted">${t.fcum}</td>
+      <td class="cell-wrap">${t.com}</td>
+      <td><span class="badge ${t.estB}">${t.est}</span></td>
+    </tr>`).join('');
+}
+
+function renderKanban(){
+  document.getElementById('kanban').innerHTML = KANBAN.map(col=>{
+    const total = col.cards.reduce((s,c)=>s+Number(c.m.replace(/[^0-9.]/g,'')||0),0);
+    return `
+    <div class="kb-col">
+      <div class="kb-head">
+        <div class="kb-head-top">
+          <span class="kb-dot" style="background:${col.c}"></span>
+          <span class="kb-title">${col.t}</span>
+          <span class="kb-count">${col.cards.length}</span>
+        </div>
+        <div class="kb-total">Total: $${total.toLocaleString('es-MX',{minimumFractionDigits:2})}</div>
+      </div>
+      <div class="kb-body">
+        ${col.cards.map(c=>`
+        <div class="kb-card">
+          <div class="kb-card-top">
+            <div class="kb-name">${c.n}</div>
+            <button class="kb-menu"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+          </div>
+          <div class="kb-meta">
+            <div class="kb-row"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>${c.r}</div>
+            <div class="kb-row"><svg viewBox="0 0 24 24"><path d="M20.6 13.3L13.3 20.6a2 2 0 01-2.8 0l-8-8V3h9.6l8.5 8.5a2 2 0 010 2.8z"/><path d="M7 7h.01"/></svg>${c.tp}</div>
+            <div class="kb-row"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>${c.f}</div>
+          </div>
+          <div class="kb-foot">
+            <span class="kb-amount-lbl">Monto</span>
+            <span class="kb-amount">${c.m}</span>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderDonut(svgId,legendId,totalId,data){
+  const total = data.reduce((s,d)=>s+d.v,0);
+  const R = 42, C = 2*Math.PI*R;
+  let off = 0;
+  const svg = document.getElementById(svgId);
+  svg.innerHTML = `<circle cx="60" cy="60" r="${R}" stroke="#EDF0F5"/>` + data.map(d=>{
+    const len = C*(d.v/total);
+    const el = `<circle cx="60" cy="60" r="${R}" stroke="${d.c}" stroke-dasharray="${len-2} ${C-len+2}" stroke-dashoffset="${-off}" stroke-linecap="butt"><title>${d.l}: ${d.v}</title></circle>`;
+    off += len;
+    return el;
+  }).join('');
+  document.getElementById(totalId).textContent = total;
+  document.getElementById(legendId).innerHTML = data.map(d=>`
+    <div class="legend-item">
+      <span class="sw" style="background:${d.c}"></span>
+      <span class="lb">${d.l}</span>
+      <span class="vl">${d.v}</span>
+      <span class="pc">${Math.round(d.v/total*100)}%</span>
+    </div>`).join('');
+}
+
+function renderDestinatarios(){
+  document.getElementById('tbodyDestinatarios').innerHTML = CLIENTES.slice(0,5).map(c=>`
+    <tr>
+      <td><span class="check on" data-check><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span></td>
+      <td class="cell-strong">${c.n}</td>
+      <td><span class="badge ${c.tipoB}">${c.tipo}</span></td>
+      <td class="cell-muted">${c.zona}</td>
+      <td><div class="person"><span class="av">${ini(c.resp)}</span>${c.resp}</div></td>
+    </tr>`).join('');
+}
+
+/* ---------- DASHBOARD ---------- */
+const ICONS = {
+  tareas:'<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>',
+  desempeno:'<path d="M18 20V10M12 20V4M6 20v-6"/>',
+  kanban:'<rect x="3" y="3" width="6" height="18" rx="1.5"/><rect x="11" y="3" width="6" height="12" rx="1.5"/><rect x="19" y="3" width="2" height="16" rx="1"/>',
+  clientes:'<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>',
+  supervision:'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>',
+  mercadotecnia:'<path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 11-5.8-1.6"/>',
+  servicio:'<path d="M3 18v-6a9 9 0 0118 0v6"/><path d="M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z"/>',
+  spmail:'<rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/>',
+  catalogos:'<path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>'
+};
+const SIN_CAPTURA = 'Sin captura de referencia';
+const TILES = [
+  {v:'tareas',      t:'Tareas',              d:'Compromisos y seguimientos',      c:'g', n:()=>TAREAS.length},
+  {v:'desempeno',   t:'Desempeño',           d:'Cumplimiento y efectividad',      c:'',  n:null},
+  {v:'kanban',      t:'Kanban de clientes',  d:'Pipeline comercial por etapa',    c:'t', n:()=>KANBAN.reduce((s,k)=>s+k.cards.length,0)},
+  {v:'clientes',    t:'Clientes',            d:'Listado de clientes y prospectos',c:'v', n:()=>CLIENTES.length},
+  {v:'supervision', t:'Supervisión',         d:SIN_CAPTURA,                       c:'n', n:null},
+  {v:'mercadotecnia',t:'Mercadotecnia',      d:'Campañas',                        c:'a', n:null},
+  {v:'servicio',    t:'Servicio al cliente', d:SIN_CAPTURA,                       c:'n', n:null},
+  {v:'spmail',      t:'SP Mail',             d:SIN_CAPTURA,                       c:'n', n:null},
+  {v:'catalogos',   t:'Catálogos',           d:SIN_CAPTURA,                       c:'n', n:null}
+];
+
+function renderDashboard(){
+  const d = new Date().toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  document.getElementById('greetDate').textContent = d.charAt(0).toUpperCase()+d.slice(1);
+
+  document.getElementById('tileGrid').innerHTML = TILES.map(t=>`
+    <button class="tile" data-goto="${t.v}">
+      <div class="tile-top">
+        <span class="tile-ico ${t.c}"><svg viewBox="0 0 24 24">${ICONS[t.v]}</svg></span>
+        ${t.n ? `<span class="tile-count">${t.n()}</span>` : ''}
+      </div>
+      <h4>${t.t}</h4>
+      <p>${t.d}</p>
+      <span class="go">Abrir <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </button>`).join('');
+
+  document.getElementById('miniKpis').innerHTML = KPIS.map(k=>`
+    <div class="mini-kpi">
+      <div class="lb">${k.l}</div>
+      <div class="vl">${k.v}${k.u?`<small>${k.u}</small>`:''}</div>
+    </div>`).join('');
+
+  const max = Math.max(...KANBAN.map(k=>k.cards.length));
+  document.getElementById('pipeList').innerHTML = KANBAN.map(k=>{
+    const total = k.cards.reduce((s,c)=>s+Number(c.m.replace(/[^0-9.]/g,'')||0),0);
+    return `
+    <div class="pipe-row">
+      <span class="pipe-dot" style="background:${k.c}"></span>
+      <span class="pipe-name">${k.t}</span>
+      <span class="pipe-bar"><i style="width:${k.cards.length/max*100}%;background:${k.c}"></i></span>
+      <span class="pipe-n">${k.cards.length}</span>
+      <span class="pipe-amount">$${total.toLocaleString('es-MX',{minimumFractionDigits:2})}</span>
+    </div>`;
+  }).join('');
+
+  document.getElementById('pendingList').innerHTML = TAREAS.filter(t=>t.est!=='Cumplido').map(t=>`
+    <div class="mini-row" data-goto="tareas">
+      <span class="av" style="width:28px;height:28px;border-radius:8px;background:var(--gray-100);color:var(--gray-600);font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;flex:none">${ini(t.resp)}</span>
+      <span class="mini-main">
+        <span class="mini-title">${t.cli}</span>
+        <span class="mini-sub">${t.folio} · ${t.tipo} · ${t.fc}</span>
+      </span>
+      <span class="badge ${t.estB}">${t.est}</span>
+    </div>`).join('');
+}
+
+function emptyState(title,text){
+  return `<div class="card"><div class="empty">
+    <div class="empty-ill"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M12 8v8"/></svg></div>
+    <h3>${title}</h3><p>${text}</p>
+    <button class="btn btn-secondary" data-goto="clientes">Ir a Clientes</button>
+  </div></div>`;
+}
+['supervision','servicio','spmail','catalogos'].forEach(v=>{
+  document.getElementById('view-'+v).innerHTML =
+    `<div class="view-head"><div><div class="vh-title">${TITLES[v][1]}</div>
+     <div class="vh-sub">Módulo del menú de navegación</div></div></div>` +
+    emptyState('Sin captura de referencia','Este módulo aparece en el sidebar pero no se incluyó una captura de su contenido, por lo que no se recreó ninguna pantalla. Envía la captura y se agrega con el mismo lenguaje visual.');
+});
+
+/* ============================================================
+   INTERACCIÓN
+   ============================================================ */
+const sidebar = document.getElementById('sidebar');
+const scrim = document.getElementById('scrim');
+
+function goTo(view){
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
+  document.querySelectorAll('.view').forEach(s=>s.classList.toggle('active',s.id==='view-'+view));
+  document.getElementById('crumbView').textContent = TITLES[view][0];
+  document.getElementById('pageTitle').textContent = TITLES[view][1];
+  sidebar.classList.remove('open'); scrim.classList.remove('on');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+document.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click',()=>goTo(b.dataset.view)));
+document.addEventListener('click',e=>{
+  const g = e.target.closest('[data-goto]');
+  if(g) goTo(g.dataset.goto);
+  const ck = e.target.closest('[data-check]');
+  if(ck){ ck.classList.toggle('on'); updateRecCount(); }
+  const seg = e.target.closest('.segmented button');
+  if(seg && !seg.dataset.goto){ seg.parentElement.querySelectorAll('button').forEach(x=>x.classList.remove('active')); seg.classList.add('active'); }
+  const tab = e.target.closest('.tab');
+  if(tab){ tab.parentElement.querySelectorAll('.tab').forEach(x=>x.classList.remove('active')); tab.classList.add('active'); }
+  const sw = e.target.closest('.switch');
+  if(sw) sw.classList.toggle('on');
+});
+function updateRecCount(){
+  const n = document.querySelectorAll('#tbodyDestinatarios .check.on').length;
+  document.getElementById('recCount').textContent = n;
+}
+
+document.getElementById('hamburger').addEventListener('click',()=>{
+  sidebar.classList.toggle('open'); scrim.classList.toggle('on');
+});
+scrim.addEventListener('click',()=>{sidebar.classList.remove('open');scrim.classList.remove('on')});
+
+document.getElementById('noteClose').addEventListener('click',()=>{
+  const t = document.getElementById('previewToast');
+  t.classList.add('out');
+  t.addEventListener('animationend',()=>t.remove(),{once:true});
+});
+
+/* ---- Modal campaña ---- */
+const overlay = document.getElementById('campaignOverlay');
+let step = 1;
+function setStep(n){
+  step = Math.min(3,Math.max(1,n));
+  document.querySelectorAll('.step').forEach(s=>{
+    const i = Number(s.dataset.step);
+    s.classList.toggle('active',i===step);
+    s.classList.toggle('done',i<step);
+    s.querySelector('.step-num').innerHTML = i<step
+      ? '<svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>' : i;
+  });
+  document.querySelectorAll('.step-panel').forEach(p=>p.classList.toggle('active',Number(p.dataset.panel)===step));
+  document.getElementById('stepCount').textContent = `Paso ${step} de 3`;
+  document.getElementById('btnPrev').style.visibility = step===1?'hidden':'visible';
+  document.getElementById('btnNext').textContent = step===3?'Guardar campaña':'Siguiente';
+  document.querySelector('.modal-body').scrollTop = 0;
+}
+function openCampaign(){ overlay.classList.add('open'); setStep(1); }
+function closeCampaign(){ overlay.classList.remove('open'); }
+document.getElementById('openCampaign').addEventListener('click',openCampaign);
+document.addEventListener('click',e=>{ if(e.target.closest('[data-open-campaign]')) openCampaign(); });
+document.getElementById('campaignClose').addEventListener('click',closeCampaign);
+document.getElementById('btnCancel').addEventListener('click',closeCampaign);
+overlay.addEventListener('click',e=>{ if(e.target===overlay) closeCampaign(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeCampaign(); });
+document.getElementById('btnNext').addEventListener('click',()=>{ step===3 ? closeCampaign() : setStep(step+1); });
+document.getElementById('btnPrev').addEventListener('click',()=>setStep(step-1));
+
+/* ---- Editor placeholder ---- */
+const ed = document.querySelector('.editor-area');
+ed.addEventListener('focus',()=>{ const ph=ed.querySelector('.ph'); if(ph) ph.remove(); });
+
+/* ---- init ---- */
+renderDashboard();
+renderClientes();
+renderTareas();
+renderKanban();
+renderDestinatarios();
+renderDonut('donutResp','legendResp','donutRespTotal',CHART_RESP);
+renderDonut('donutTipo','legendTipo','donutTipoTotal',CHART_TIPO);
+setStep(1);
+</script>
+</body>
+</html>
